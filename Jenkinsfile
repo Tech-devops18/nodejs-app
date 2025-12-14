@@ -54,7 +54,7 @@ pipeline {
 
         stage('Deploy to Node Server') {
             steps {
-                sshagent(credentials: ['nodejs-server']) {
+                sshagent(credentials: ['nodejs']) {
                     sh """
                         ssh -o StrictHostKeyChecking=no ubuntu@${SERVER} 'sudo mkdir -p ${APP_DIR}'
                         rsync -avz --delete . ubuntu@${SERVER}:${APP_DIR}
