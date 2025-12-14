@@ -56,7 +56,7 @@ pipeline {
             steps {
                 sshagent(credentials: ['nodejs']) {
                     sh """
-                        ssh -o StrictHostKeyChecking=no ubuntu@${SERVER} 'sudo mkdir -p ${APP_DIR} && chown -R ubuntu ${APP_DIR}'
+                        ssh -o StrictHostKeyChecking=no ubuntu@${SERVER} 'sudo mkdir -p ${APP_DIR} && sudo chown -R ubuntu ${APP_DIR}'
                         rsync -avz --delete . ubuntu@${SERVER}:${APP_DIR}
                         ssh -o StrictHostKeyChecking=no ubuntu@${SERVER} '
                             sudo cd ${APP_DIR} &&
