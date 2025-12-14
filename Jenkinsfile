@@ -3,7 +3,7 @@ pipeline {
 
     tools {
         nodejs 'NODEJS'
-        java 'JAVA_HOME'
+        jdk 'JAVA_HOME'
     }
 
     environment {
