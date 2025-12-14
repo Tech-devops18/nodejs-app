@@ -61,7 +61,7 @@ pipeline {
                         ssh -o StrictHostKeyChecking=no ubuntu@${SERVER} '
                             cd ${APP_DIR} &&
                             sudo npm install &&
-                            sudo pm2 restart app || sudo pm2 start index.js --name app
+                            pm2 restart app || pm2 start index.js --name app
                         '
                     """
                 }
