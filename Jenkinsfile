@@ -58,8 +58,9 @@ pipeline {
               scp -o StrictHostKeyChecking=no -r ansible ubuntu@${ANSIBLE_IP}:/tmp/ansible
 
               ssh -o StrictHostKeyChecking=no ubuntu@${ANSIBLE_IP} '
-                sudo rm -rf /opt/ansible &&
+                
                 sudo mv /tmp/ansible /opt/ansible &&
+				sudo rm -rf /tmp/ansible &&
 				sudo chown -R ubuntu:ubuntu /opt/ansible &&
                 sudo ansible-playbook /opt/ansible/deploy.yml \
                   -i /opt/ansible/hosts
