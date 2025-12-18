@@ -17,7 +17,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker build -t ${DOCKER_IMAGE}-nodejs:${DOCKER_TAG}  .
+                    docker build -t ${DOCKER_IMAGE}/nodejs:${DOCKER_TAG}  .
                 }
             }
         }
@@ -37,8 +37,8 @@ pipeline {
         stage('Docker Tag') {
             steps {
                 script {
-		    sh "docker tag ${DOCKER_IMAGE}-nodejs:${DOCKER_TAG} ${DOCKER_IMAGE}:${DOCKER_TAG}"
-                    sh "docker tag ${DOCKER_IMAGE}-nodejs:${DOCKER_TAG} ${DOCKER_IMAGE}:latest"
+		    sh "docker tag ${DOCKER_IMAGE}/nodejs:${DOCKER_TAG} ${DOCKER_IMAGE}/nodejs:${DOCKER_TAG}"
+            sh "docker tag ${DOCKER_IMAGE}/nodejs:${DOCKER_TAG} ${DOCKER_IMAGE}/nodejs:latest"
                 }
             }
         }
@@ -46,8 +46,8 @@ pipeline {
 	stage('Push Docker Image') {
             steps {
                 script {
-                    sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
-                    sh "docker push ${DOCKER_IMAGE}:latest"
+                    sh "docker push ${DOCKER_IMAGE}/nodejs:${DOCKER_TAG}"
+                    sh "docker push ${DOCKER_IMAGE}/nodejs:latest"
                 }
             }
         }
