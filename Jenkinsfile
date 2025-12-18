@@ -22,7 +22,16 @@ pipeline {
             }
         }
 
-        stage('Login to Docker Hub') {
+        
+
+        stage('Docker Tag') {
+            steps {
+				sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest"
+            }
+        }
+
+		stage('Login to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'docker-hub',
@@ -34,17 +43,10 @@ pipeline {
             }
         }
 
-        stage('Docker Tag') {
-            steps {
-				sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}/nodejs:${DOCKER_TAG}"
-                sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}/nodejs:latest"
-            }
-        }
-
         stage('Push Docker Image') {
             steps {
-                sh "docker push ${DOCKER_IMAGE}/nodejs:${DOCKER_TAG}"
-                sh "docker push ${DOCKER_IMAGE}/nodejs:latest"
+                sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
+                sh "docker push ${DOCKER_IMAGE}:latest"
             }
         }
     }
