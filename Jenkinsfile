@@ -4,6 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = "irfancareers18/nodejs-container"
         DOCKER_TAG   = "${BUILD_NUMBER}"
+		ANSIBLE_IP = "172.31.25.204"
     }
 
     stages {
@@ -49,5 +50,19 @@ pipeline {
                 sh "docker push ${DOCKER_IMAGE}:latest"
             }
         }
+
+		stage('Deploy using Ansible') {
+    steps {
+        sshagent(['ansible-server-ssh']) {
+            sh """
+              scp -r ansible ubuntu@${ANSIBLE_IP}:/tmp/ansible &&
+              ssh ubuntu@{ANSIBLE_IP} '
+                ansible-playbook /tmp/ansible/deploy.yml \
+                -i /tmp/ansible/hosts
+              '
+            """
+        }
+    }
+}
     }
 }
