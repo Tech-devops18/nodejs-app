@@ -61,8 +61,7 @@ pipeline {
                 sudo rm -rf /opt/ansible &&
                 sudo mv /tmp/ansible /opt/ansible &&
 				sudo rm -rf /tmp/ansible &&
-				sudo chown -R ubuntu:ubuntu /opt/ansible &&
-                sudo ansible-playbook /opt/ansible/deploy.yml \
+                ansible-playbook /opt/ansible/deploy.yml \
                   -i /opt/ansible/hosts
               '
             """
