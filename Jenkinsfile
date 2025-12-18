@@ -16,11 +16,9 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh docker build -t ${DOCKER_IMAGE}/nodejs:${DOCKER_TAG}  .
+                    sh "docker build -t ${DOCKER_IMAGE}/nodejs:${DOCKER_TAG}  ."
                 }
             }
-        }
 
         stage('Login to Docker Hub') {
             steps {
@@ -36,21 +34,17 @@ pipeline {
 
         stage('Docker Tag') {
             steps {
-                script {
 		    sh "docker tag ${DOCKER_IMAGE}/nodejs:${DOCKER_TAG} ${DOCKER_IMAGE}/nodejs:${DOCKER_TAG}"
             sh "docker tag ${DOCKER_IMAGE}/nodejs:${DOCKER_TAG} ${DOCKER_IMAGE}/nodejs:latest"
                 }
             }
-        }
 
 	stage('Push Docker Image') {
             steps {
-                script {
                     sh "docker push ${DOCKER_IMAGE}/nodejs:${DOCKER_TAG}"
                     sh "docker push ${DOCKER_IMAGE}/nodejs:latest"
                 }
             }
-        }
 
 #        stage('Deploy using Ansible') {
 #            steps {
