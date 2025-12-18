@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 
 app.get('/', (req, res) => {
-  res.send('Node.js app deployed using Jenkins Pipeline');
+  res.send('Node.js app deployed using Jenkins Pipeline + Ansible playbook');
 });
 
 app.listen(3000, () => {
