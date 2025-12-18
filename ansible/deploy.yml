@@ -1,5 +1,5 @@
 ---
-- name: Deploy sadhixapp container
+- name: Deploy nodejs container
 hosts: all
 become: yes
 tasks:
@@ -11,3 +11,4 @@ shell: docker container rm -f nodejs-app || true
 shell: docker image rm irfancareers18/nodejs-container:latest || true
 - name: Run new container
 shell: docker run -dit --name nodejs-app -p 80:3000 irfancareers18/nodejs-container:latest
+
