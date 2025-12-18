@@ -1,0 +1,13 @@
+---
+- name: Deploy sadhixapp container
+hosts: all
+become: yes
+tasks:
+- name: Stop existing container
+shell: docker container stop nodejs-app || true
+- name: Remove existing container
+shell: docker container rm -f nodejs-app || true
+- name: Remove old latest image
+shell: docker image rm irfancareers18/nodejs-container:latest || true
+- name: Run new container
+shell: docker run -dit --name nodejs-app -p 80:3000 irfancareers18/nodejs-container:latest
