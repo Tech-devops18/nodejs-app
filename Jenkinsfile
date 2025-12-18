@@ -17,7 +17,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker build -t ${DOCKER_IMAGE}/nodejs:${DOCKER_TAG}  .
+                    sh docker build -t ${DOCKER_IMAGE}/nodejs:${DOCKER_TAG}  .
                 }
             }
         }
