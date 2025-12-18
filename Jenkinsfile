@@ -52,16 +52,22 @@ pipeline {
         }
 
 		stage('Deploy using Ansible') {
-    steps {
-        sshagent(['ansible-host']) {
+    		steps {
+        	sshagent(['ansible-host']) {
             sh """
-              scp -r ansible ubuntu@${ANSIBLE_IP}:/tmp/ansible &&
-              ssh ubuntu@{ANSIBLE_IP} '
-                ansible-playbook /tmp/ansible/deploy.yml -i /tmp/ansible/hosts
+              scp -o StrictHostKeyChecking=no -r ansible ubuntu@${ANSIBLE_IP}:/tmp/ansible
+
+              ssh -o StrictHostKeyChecking=no ubuntu@${ANSIBLE_IP} '
+                sudo rm -rf /opt/ansible &&
+                sudo mv /tmp/ansible /opt/ansible &&
+				sudo chown -R ubuntu:ubuntu /opt/ansible &&
+                sudo ansible-playbook /opt/ansible/deploy.yml \
+                  -i /opt/ansible/hosts
               '
             """
         }
     }
 }
+
     }
 }
