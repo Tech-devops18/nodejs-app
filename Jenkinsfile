@@ -45,17 +45,3 @@ pipeline {
                     sh "docker push ${DOCKER_IMAGE}/nodejs:latest"
                 }
             }
-
-#        stage('Deploy using Ansible') {
-#            steps {
-#               sshagent(['docker-server-ssh']) {
-#                    sh """
-#                      ansible-playbook ansible/deploy.yml \
-#                      -i ansible/inventory \
-#                      --extra-vars "image=${DOCKER_IMAGE}:latest"
-#                    """
-#                }
-#            }
-#        }
-#    }
-#}
