@@ -53,12 +53,11 @@ pipeline {
 
 		stage('Deploy using Ansible') {
     steps {
-        sshagent(['ansible-server-ssh']) {
+        sshagent(['ansible-host']) {
             sh """
               scp -r ansible ubuntu@${ANSIBLE_IP}:/tmp/ansible &&
               ssh ubuntu@{ANSIBLE_IP} '
-                ansible-playbook /tmp/ansible/deploy.yml \
-                -i /tmp/ansible/hosts
+                ansible-playbook /tmp/ansible/deploy.yml -i /tmp/ansible/hosts
               '
             """
         }
