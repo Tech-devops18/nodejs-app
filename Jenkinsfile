@@ -11,19 +11,56 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git branch: 'cicd-ansi-docker',
-                    credentialsId: 'github-account',
+                git branch: 'cicd-codecheck',
+                    credentialsId: 'github-creds',
                     url: 'https://github.com/Tech-devops18/nodejs-app.git'
             }
         }
 
+		stage('Install Dependencies') {
+            steps {
+                sh '''
+                  npm install
+                '''
+            }
+        }
+
+		stage('SonarQube Scan') {
+            steps {
+                withSonarQubeEnv('sonarqube') {
+                    sh '''
+                      sonar-scanner \
+                      -Dsonar.projectKey=nodejs-app \
+                      -Dsonar.sources=. \
+                      -Dsonar.language=js \
+                      -Dsonar.nodejs.executable=node \
+                      -Dsonar.exclusions=node_modules/**,Dockerfile
+                    '''
+                }
+            }
+        }
+
+		stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+		
         stage('Build Docker Image') {
             steps {
                 sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
             }
         }
 
-        
+		stage('Trivy Image Scan') {
+            steps {
+                sh '''
+                  trivy image --severity HIGH,CRITICAL --exit-code 1 $IMAGE_NAME:$IMAGE_TAG
+                '''
+            }
+        }
 
         stage('Docker Tag') {
             steps {
