@@ -30,7 +30,7 @@ pipeline {
             }
         }
 
-        stage('Agent Check') {
+        stage('Agent name and sonar scanner version check') {
             steps {
                 sh '''
                   echo "Node: $NODE_NAME"
