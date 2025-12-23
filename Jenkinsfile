@@ -1,9 +1,9 @@
 pipeline {
     agent { label 'jenkins-agent-1' }
 
-	tools {
-        sonarScanner 'sonar-scanner'
-    }
+// tools {
+//        sonarScanner 'sonar-scanner'
+//    }
 
     environment {
         DOCKER_IMAGE = "irfancareers18/nodejs-container"
