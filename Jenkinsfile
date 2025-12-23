@@ -29,6 +29,16 @@ pipeline {
             }
         }
 
+        stage('Agent Check') {
+            steps {
+                sh '''
+                  echo "Node: $NODE_NAME"
+                  which sonar-scanner
+                  sonar-scanner --version
+                '''
+            }
+        }
+
 		stage('SonarQube Scan') {
             steps {
                 withSonarQubeEnv('sonarqube') {
