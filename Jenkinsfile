@@ -6,6 +6,7 @@ pipeline {
 //    }
 
     environment {
+		SONAR_HOME = tool "sonar-scanner"
         DOCKER_IMAGE = "irfancareers18/nodejs-container"
         DOCKER_TAG   = "${BUILD_NUMBER}"
 		ANSIBLE_IP = "172.31.25.204"
