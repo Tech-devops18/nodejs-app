@@ -35,7 +35,7 @@ pipeline {
                 sh '''
                   echo "Node: $NODE_NAME"
                   which sonar-scanner
-                  sonar-scanner --version
+                  $SONAR_HOME/bin/sonar-scanner --version
                 '''
             }
         }
@@ -44,7 +44,7 @@ pipeline {
             steps {
                 withSonarQubeEnv('sonar-scanner') {
                     sh '''
-                      sonar-scanner \
+                      $SONAR_HOME/bin/sonar-scanner \
                       -Dsonar.projectKey=nodejs-app \
                       -Dsonar.sources=. \
                       -Dsonar.language=js \
