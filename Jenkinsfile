@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent { label 'jenkins-agent-1' }
 
     environment {
         DOCKER_IMAGE = "irfancareers18/nodejs-container"
