@@ -136,7 +136,10 @@ pipeline {
         }
     }
 }
-		post {
+		
+    }
+}
+post {
     always {
         echo "Archiving Trivy reports"
 
@@ -145,7 +148,5 @@ pipeline {
 
     failure {
         echo "Pipeline failed."
-    }
-}
     }
 }
