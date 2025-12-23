@@ -46,9 +46,7 @@ pipeline {
                       $SONAR_HOME/bin/sonar-scanner \
                       -Dsonar.projectKey=nodejs-app \
                       -Dsonar.sources=. \
-                      -Dsonar.language=js \
-                      -Dsonar.nodejs.executable=node \
-                      -Dsonar.exclusions=node_modules/**,Dockerfile
+                      -Dsonar.exclusions=node_modules/**,Dockerfile,ansible/**
                     '''
                 }
             }
