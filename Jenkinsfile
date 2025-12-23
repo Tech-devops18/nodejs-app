@@ -1,9 +1,9 @@
 pipeline {
     agent { label 'jenkins-agent-1' }
 
-tools {
+	tools {
        sonarRunner  'sonar-scanner'
-   }
+   	}
 
     environment {
 		SONAR_HOME = tool "sonar-scanner"
