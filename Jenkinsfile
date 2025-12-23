@@ -136,6 +136,16 @@ pipeline {
         }
     }
 }
+		post {
+    always {
+        echo "Archiving Trivy reports"
 
+        archiveArtifacts artifacts: 'trivy-image-report.html,report.json', fingerprint: true
+    }
+
+    failure {
+        echo "Pipeline failed."
+    }
+}
     }
 }
