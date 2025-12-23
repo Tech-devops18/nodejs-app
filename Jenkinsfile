@@ -66,10 +66,18 @@ pipeline {
             }
         }
 
-		stage('Trivy Image Scan') {
+		stage('Trivy Image Scan covert to html report') {
             steps {
                 sh '''
-                  trivy image --severity HIGH,CRITICAL --format html --output trivy-image-report.html --exit-code 1 ${DOCKER_IMAGE}:${DOCKER_TAG}
+                  trivy image --severity HIGH,CRITICAL --format template --template "@contrib/html.tpl" --output trivy-image-report.html --exit-code 1 ${DOCKER_IMAGE}:${DOCKER_TAG}
+                '''
+            }
+        }
+
+		stage('Trivy Image Scan covert to json report') {
+            steps {
+                sh '''
+                  trivy image --format json -o report.json ${DOCKER_IMAGE}:${DOCKER_TAG}
                 '''
             }
         }
