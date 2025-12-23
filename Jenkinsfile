@@ -74,7 +74,7 @@ pipeline {
             		curl -s -o trivy-templates/html.tpl \
             		https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
           			fi
-                  	trivy image --severity HIGH,CRITICAL --format template --template "@contrib/html.tpl" --output trivy-image-report.html ${DOCKER_IMAGE}:${DOCKER_TAG}
+                  	trivy image --severity HIGH,CRITICAL --format template --template "@trivy-templates/html.tpl" --output trivy-image-report.html ${DOCKER_IMAGE}:${DOCKER_TAG}
                 '''
             }
         }
