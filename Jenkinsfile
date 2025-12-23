@@ -34,7 +34,6 @@ pipeline {
             steps {
                 sh '''
                   echo "Node: $NODE_NAME"
-                  which sonar-scanner
                   $SONAR_HOME/bin/sonar-scanner --version
                 '''
             }
