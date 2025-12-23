@@ -1,20 +1,16 @@
 pipeline {
     agent { label 'jenkins-agent-1' }
 
-	// tools {
- //       sonarRunner  'sonar-scanner'
- //   	}
-
     environment {
-		SONAR_HOME = tool "sonar-scanner"
+        SONAR_HOME   = tool "sonar-scanner"
         DOCKER_IMAGE = "irfancareers18/nodejs-container"
         DOCKER_TAG   = "${BUILD_NUMBER}"
-		ANSIBLE_IP = "172.31.25.204"
+        ANSIBLE_IP   = "172.31.25.204"
     }
 
     stages {
 
-		stage('Clean Workspace') {
+        stage('Clean Workspace') {
             steps {
                 cleanWs()
             }
@@ -28,11 +24,9 @@ pipeline {
             }
         }
 
-		stage('Install Dependencies') {
+        stage('Install Dependencies') {
             steps {
-                sh '''
-                  npm install
-                '''
+                sh 'npm install'
             }
         }
 
@@ -45,7 +39,7 @@ pipeline {
             }
         }
 
-		stage('SonarQube Scan') {
+        stage('SonarQube Scan') {
             steps {
                 withSonarQubeEnv('sonarqube') {
                     sh '''
@@ -58,34 +52,40 @@ pipeline {
             }
         }
 
-		stage('Quality Gate') {
+        stage('Quality Gate') {
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: false
                 }
             }
         }
-		
+
         stage('Build Docker Image') {
             steps {
                 sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
             }
         }
 
-		stage('Trivy Image Scan covert to html report') {
+        stage('Trivy Image Scan - HTML Report') {
             steps {
                 sh '''
-					mkdir -p trivy-templates
-          			if [ ! -f trivy-templates/html.tpl ]; then
-            		curl -s -o trivy-templates/html.tpl \
-            		https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
-          			fi
-                  	trivy image --severity HIGH,CRITICAL --format template --template "@trivy-templates/html.tpl" --output trivy-image-report.html ${DOCKER_IMAGE}:${DOCKER_TAG}
+                  mkdir -p trivy-templates
+                  if [ ! -f trivy-templates/html.tpl ]; then
+                    curl -s -o trivy-templates/html.tpl \
+                    https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
+                  fi
+
+                  trivy image \
+                    --severity HIGH,CRITICAL \
+                    --format template \
+                    --template "@trivy-templates/html.tpl" \
+                    --output trivy-image-report.html \
+                    ${DOCKER_IMAGE}:${DOCKER_TAG}
                 '''
             }
         }
 
-		stage('Trivy Image Scan covert to json report') {
+        stage('Trivy Image Scan - JSON Report') {
             steps {
                 sh '''
                   trivy image --format json -o report.json ${DOCKER_IMAGE}:${DOCKER_TAG}
@@ -95,19 +95,18 @@ pipeline {
 
         stage('Docker Tag') {
             steps {
-				sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:${DOCKER_TAG}"
                 sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest"
             }
         }
 
-		stage('Login to Docker Hub') {
+        stage('Login to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'docker-hub',
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
                 }
             }
         }
@@ -119,34 +118,33 @@ pipeline {
             }
         }
 
-		stage('Deploy using Ansible') {
-    		steps {
-        	sshagent(['ansible-host']) {
-            sh """
-              scp -o StrictHostKeyChecking=no -r ansible ubuntu@${ANSIBLE_IP}:/tmp/ansible
+        stage('Deploy using Ansible') {
+            steps {
+                sshagent(['ansible-host']) {
+                    sh """
+                      scp -o StrictHostKeyChecking=no -r ansible ubuntu@${ANSIBLE_IP}:/tmp/ansible
 
-              ssh -o StrictHostKeyChecking=no ubuntu@${ANSIBLE_IP} '
-                sudo rm -rf /opt/ansible &&
-                sudo mv /tmp/ansible /opt/ansible &&
-				sudo rm -rf /tmp/ansible &&
-                ansible-playbook /opt/ansible/deploy.yml \
-                  -i /opt/ansible/hosts
-              '
-            """
+                      ssh -o StrictHostKeyChecking=no ubuntu@${ANSIBLE_IP} '
+                        sudo rm -rf /opt/ansible &&
+                        sudo mv /tmp/ansible /opt/ansible &&
+                        sudo rm -rf /tmp/ansible &&
+                        ansible-playbook /opt/ansible/deploy.yml \
+                          -i /opt/ansible/hosts
+                      '
+                    """
+                }
+            }
         }
     }
-}
-		
-    }
-}
-post {
-    always {
-        echo "Archiving Trivy reports"
 
-        archiveArtifacts artifacts: 'trivy-image-report.html,report.json', fingerprint: true
-    }
+    post {
+        always {
+            echo "Archiving Trivy reports"
+            archiveArtifacts artifacts: 'trivy-image-report.html,report.json', fingerprint: true
+        }
 
-    failure {
-        echo "Pipeline failed."
+        failure {
+            echo "Pipeline failed."
+        }
     }
 }
