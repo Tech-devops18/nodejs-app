@@ -112,7 +112,7 @@ pipeline {
                     git config user.name "irfan"
                     git add deployment.yaml
                     git commit -m "Update image tag to ${IMAGE_TAG}"
-                    git push https://${GIT_USER}:${GIT_PASS}@${GITOPS_REPO} ${GIT_BRANCH}
+                    git push https://${GIT_USER}:${GIT_PASS}@github.com/Tech-devops18/GitOps-work1818.git ${GIT_BRANCH}
                 """
             }
         }
