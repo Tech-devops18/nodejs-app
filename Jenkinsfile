@@ -57,7 +57,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-                whami
+                whoami
                 docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
                 '''
             }
