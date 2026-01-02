@@ -56,7 +56,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                sh "sudo docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
             }
         }
 
@@ -88,9 +88,9 @@ pipeline {
         stage('Tag and Push Docker Image') {
             steps {
                 sh """
-                    docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
-                    docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                    docker push ${IMAGE_NAME}:latest
+                    sudo docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+                    sudo docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                    sudo docker push ${IMAGE_NAME}:latest
                 """
             }
         }
