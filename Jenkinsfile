@@ -1,11 +1,10 @@
 pipeline {
-    agent { label 'jenkins-agent-1' }
+    agent any
 
     environment {
-        SONAR_HOME   = tool "sonar-scanner"
-        DOCKER_IMAGE = "irfancareers18/nodejs-container"
-        DOCKER_TAG   = "${BUILD_NUMBER}"
-        ANSIBLE_IP   = "172.31.25.204"
+        IMAGE_NAME = "irfancareers18/nodejs-container"
+        IMAGE_TAG  = "${BUILD_NUMBER}"
+	    GITOPS_REPO = "https://github.com/Tech-devops18/GitOps-work1818.git"
     }
 
     stages {
@@ -18,11 +17,29 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git branch: 'cicd-codecheck',
-                    credentialsId: 'github-creds',
-                    url: 'https://github.com/Tech-devops18/nodejs-app.git'
+                git branch: "argocd", url: 'https://github.com/Tech-devops18/nodejs-app.git'
             }
         }
+
+	stage('Verify package.json') {
+    steps {
+        sh '''
+            echo "Checking for package.json..."
+
+            if [ -f package.json ]; then
+                echo "package.json file is available"
+            else
+                echo "package.json not found"
+                exit 1
+            fi
+
+            echo "Validating package.json syntax..."
+            node -e "JSON.parse(require('fs').readFileSync('package.json', 'utf8'))"
+
+            echo "package.json syntax is valid"
+        '''
+    		}
+	}
 
         stage('Install Dependencies') {
             steps {
@@ -30,79 +47,35 @@ pipeline {
             }
         }
 
-        stage('Agent name and sonar scanner version check') {
+	stage('Build Application') {
             steps {
-                sh '''
-                  echo "Node: $NODE_NAME"
-                  $SONAR_HOME/bin/sonar-scanner --version
-                '''
-            }
-        }
-
-        stage('SonarQube Scan') {
-            steps {
-                withSonarQubeEnv('sonarqube') {
-                    sh '''
-                      $SONAR_HOME/bin/sonar-scanner \
-                      -Dsonar.projectKey=nodejs-app \
-                      -Dsonar.sources=. \
-                      -Dsonar.exclusions=node_modules/**,Dockerfile,ansible/**
-                    '''
-                }
-            }
-        }
-
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: false
-                }
+                sh 'npm run build'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
+                sh """
+                  docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                """
             }
         }
 
-        stage('Trivy Image Scan - HTML Report') {
+        stage('Trivy Image Scan') {
             steps {
-                sh '''
-                  mkdir -p trivy-templates
-                  if [ ! -f trivy-templates/html.tpl ]; then
-                    curl -s -o trivy-templates/html.tpl \
-                    https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/html.tpl
-                  fi
-
+                sh """
                   trivy image \
-                    --severity HIGH,CRITICAL \
-                    --format template \
-                    --template "@trivy-templates/html.tpl" \
-                    --output trivy-image-report.html \
-                    ${DOCKER_IMAGE}:${DOCKER_TAG}
-                '''
+                  --severity HIGH,CRITICAL \
+                  --exit-code 0 \
+                  ${IMAGE_NAME}:${IMAGE_TAG}
+                """
             }
         }
 
-        stage('Trivy Image Scan - JSON Report') {
-            steps {
-                sh '''
-                  trivy image --format json -o report.json ${DOCKER_IMAGE}:${DOCKER_TAG}
-                '''
-            }
-        }
-
-        stage('Docker Tag') {
-            steps {
-                sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest"
-            }
-        }
-
-        stage('Login to Docker Hub') {
+        stage('Login to DockerHub') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'docker-hub',
+                    credentialsId: 'docker-hub1',
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
@@ -111,38 +84,36 @@ pipeline {
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Tag and Push Docker Image to Docker Hub') {
             steps {
-                sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
-                sh "docker push ${DOCKER_IMAGE}:latest"
+                sh """
+                  docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${IMAGE_NAME}:latest
+                  docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                  docker push ${IMAGE_NAME}:latest
+                """
             }
         }
 
-        stage('Deploy using Ansible') {
+        stage('Update GitOps Repos ') {
             steps {
-                sshagent(['ansible-host']) {
-                    sh """
-                      scp -o StrictHostKeyChecking=no -r ansible ubuntu@${ANSIBLE_IP}:/tmp/ansible
-
-                      ssh -o StrictHostKeyChecking=no ubuntu@${ANSIBLE_IP} '
-                        sudo rm -rf /opt/ansible &&
-                        sudo mv /tmp/ansible /opt/ansible &&
-                        sudo rm -rf /tmp/ansible &&
-                        ansible-playbook /opt/ansible/deploy.yml \
-                          -i /opt/ansible/hosts
-                      '
-                    """
-                }
+                sh """
+		          git clone ${GITOPS_REPO} gitops
+                  cd gitops
+		          git checkout argocd
+                  sed -i 's|image: ${IMAGE_NAME}:.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|g' deployment.yaml
+		          git config user.email "irfancareers18@gmail.com"
+                  git config user.name "irfan"
+                  git add .
+                  git commit -m "Update image tag to ${IMAGE_TAG}"
+                  git push https://${GIT_USER}:${GIT_PASS}@github.com/Tech-devops18/nodejs-app.git ${GIT_BRANCH}
+                """
             }
         }
-    }
 
     post {
-        always {
-            echo "Archiving Trivy reports"
-            archiveArtifacts artifacts: 'trivy-image-report.html,report.json', fingerprint: true
+        success {
+            echo "CI completed. Argo CD will handle deployment."
         }
-
         failure {
             echo "Pipeline failed."
         }
